@@ -17,12 +17,13 @@ const schema = new Schema(
   }
 );
 
-schema.pre('validate', () => {
+schema.pre('validate', function(next) {
   if (!this.bookId) this.bookId = getBookSequence();
+  next();
 });
 
 // Set the createdAt (for the first time) and updatedAt (everytime) while saving
-schema.pre('save', next => {
+schema.pre('save', function(next) {
   var now = Date.now;
   if (!this.createdAt) {
     this.createdAt = now;
