@@ -11,4 +11,4 @@ const schema = new Schema(
   }
 );
 
-module.exports = mongoose.model('Counter', schema);
+module.exports.Counter = mongoose.model('Counter', schema);

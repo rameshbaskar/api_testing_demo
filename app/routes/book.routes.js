@@ -1,58 +1,56 @@
-const { Book, getBookSequence } = require('../models/book');
+const { Book } = require('../models/book');
+const { execFind, execCreate, execDelete, execUpdateWithValidation } = require('../utils/dbUtils');
 
 // GET /books
-function getBooks(req, res) {
-  Book.find({}).exec((err, books) => {
-    if (err) return res.status(500).json({ message: 'An error occured while fetching the books !!!', err });
-    if (books.length == 0) return res.status(404).json({ message: 'No books are available !!!' });
-    return res.status(200).json({ message: 'Here are the available books.', books });
-  });
+async function getBooks(req, res) {
+  var books = await execFind(Book.find({}));
+  if (!books) {
+    return res.status(500).json({ message: 'An error occured while fetching the books !!!' });
+  } else {
+    if (books.length === 0) return await res.status(404).json({ message: 'No books are available !!!' });
+    return res.status(200).json({ message: 'Here are the available books.', books: books });
+  }
 }
 
 // GET /books/:id
-function getBook(req, res) {
+async function getBook(req, res) {
   var id = parseInt(req.params.bookId);
-  Book.findOne({bookId: id}, (err, book) => {
-    if (err) return res.status(500).json({ message: `An error occured while fetching the book with id: ${id} !!!`, err });
-    if (!book) return res.status(404).json({ message: `Book with id: ${id} does not exist !!!` });
-    return res.status(200).json({ message: 'Here is the book you are looking for.', book });
-  });
+  var book = await execFind(Book.findOne({bookId: id}));
+  if (!book) return res.status(404).json({ message: `Book with id: ${id} does not exist !!!` });
+  return res.status(200).json({ message: 'Here is the book you are looking for.', book: book });
 }
 
 // POST /book
-function addBook(req, res) {
-  var newBook = new Book(req.body);
-  newBook.bookId = getBookSequence();
-  newBook.save((err, book) => {
-    if (err) return res.status(500).json({ message: 'An error occured while adding a new book !!!', err });
-    res.status(200).json({ message: 'Book successfully added.', book });
-  });
+async function addBook(req, res) {
+  try {
+    var book = await execCreate(new Book(req.body));
+    return res.status(200).json({ message: 'Book successfully added.', book: book });
+  } catch(e) {
+    return res.status(500).json({ message: 'An error occured while adding a new book !!!', error: e });
+  }
 }
 
 // PUT /book/:id
-function updateBook(req, res) {
+async function updateBook(req, res) {
   var id = parseInt(req.params.bookId);
-  Book.findOne({bookId: id}, (err, book) => {
-    if (err) return res.status(500).json({ message: `An error occured while fetching the book with id: ${id} !!!`, err });
-    if (!book) return res.status(404).json({ message: `Book with id: ${id} does not exist !!!` });
-    Object.assign(book, req.body).save((err, book) => {
-      if (err) return res.status(500).json({ message: 'An error occured while updating the book !!!', err });
-      return res.status(200).json({ message: 'Book successfully updated.', book });
-    });
-  });
+  var originalBook = await execFind(Book.findOne({bookId: id}));
+  if (!originalBook) return res.status(404).json({ message: `Book with id: ${id} does not exist !!!` });
+  try {
+    var updatedBook = await execUpdateWithValidation(Object.assign(originalBook, req.body));
+    return res.status(200).json({ message: 'Book successfully updated.', book: updatedBook });
+  } catch(e) {
+    return res.status(500).json({ message: 'An error occured while updating the book !!!', error: e });
+  }
 }
 
 // DELETE /book/:id
-function deleteBook(req, res) {
+async function deleteBook(req, res) {
   var id = parseInt(req.params.bookId);
-  Book.findOne({bookId: id}, (err, book) => {
-    if (err) return res.status(500).json({ message: `An error occured while fetching the book with id: ${id} !!!`, err });
-    if (!book) return res.status(404).json({ message: `Book with id: ${id} does not exist !!!` });
-    Book.deleteOne({bookId: id}, (err) => {
-      if (err) return res.status(500).json({ message: 'An error occured while deleting the book !!!', err });
-      return res.status(200).json({ message: 'Book successfully deleted.' });
-    });
-  });
+  var book = await execFind(Book.findOne({bookId: id}));
+  if (!book) return res.status(404).json({ message: `Book with id: ${id} does not exist !!!` });
+  var isDeleted = await execDelete(Book.deleteOne({bookId: id}));
+  if (!isDeleted) return res.status(500).json({ message: 'An error occured while deleting the book !!!' });
+  return res.status(200).json({ message: 'Book successfully deleted.' });
 }
 
 module.exports = {

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const Counter = require('./counter');
+const { Counter } = require('./counter');
+const { execFind, execCreate, execUpdate } = require('../utils/dbUtils');
 
 const schema = new Schema(
   {
@@ -17,37 +18,31 @@ const schema = new Schema(
   }
 );
 
-schema.pre('validate', function(next) {
-  if (!this.bookId) this.bookId = getBookSequence();
+schema.pre('validate', async function(next) {
+  var seq = await getBookSequence();
+  if (!this.bookId) this.bookId = seq.seqValue;
   next();
 });
 
 // Set the createdAt (for the first time) and updatedAt (everytime) while saving
 schema.pre('save', function(next) {
   var now = Date.now;
-  if (!this.createdAt) {
-    this.createdAt = now;
-  }
+  if (!this.createdAt) this.createdAt = now;
   this.updatedAt = now;
   next();
 });
 
-function getBookSequence() {
-  var updatedSeqValue = 1;
-  Counter.findById('bookId', (err, bookCounter) => {
-    if (!bookCounter) {
-      new Counter({_id: 'bookId', seqValue: 1}).save((err, counter) => {
-        if (!err) updatedSeqValue = 1;
-      });
-      
-    } else {
-      bookCounter.seqValue += 1;
-      bookCounter.save((err, updatedCounter) => {
-        if (!err) updatedSeqValue = updatedCounter.seqValue;
-      });
-    }
-  });
-  return updatedSeqValue;
+async function getBookSequence() {
+  console.log('Getting book sequence...');
+  var existingSeq = await execFind(Counter.findOne({_id: 'bookId'}));
+  if (existingSeq) {
+    console.log('Sequence exists. So incrementing the sequence value.');
+    existingSeq += 1;
+    return await execUpdate(Counter.findOneAndUpdate({_id: 'bookId'}, {$inc: {seqValue: 1}}, {upsert: true, new: true}));
+  } else {
+    console.log('Sequence does not exist. So creating a new sequence.');
+    return await execCreate(new Counter({_id: 'bookId', seqValue: 1}));
+  }
 }
 
 module.exports = {

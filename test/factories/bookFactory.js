@@ -1,35 +1,34 @@
-const { Book, getBookSequence } = require('../../app/models/book');
-const Counter = require('../../app/models/counter');
+const { Book } = require('../../app/models/book');
+const { Counter } = require('../../app/models/counter');
+const faker = require('faker');
+const { execCreate, execDelete } = require('../../app/utils/dbUtils');
 
 function getBookData() {
   return {
-    title: 'Test book',
-    author: 'John Doe',
+    title: `Simple book on ${faker.company.bs()}`,
+    author: faker.name.findName(),
     year: 1988,
     pages: 188
   };
 }
 
-function deleteAllBooks() {
-  console.log('Deleting all books from the test database...');
-  Book.deleteMany({}, (err) => {});
+async function deleteAllBooks() {
+  console.log('Deleting all books...');
+  await execDelete(Book.deleteMany({}));
 }
 
-function deleteBookCounter() {
-  console.log('Deleting the book counter...');
-  Counter.deleteOne({_id: 'bookId'}, (err) => {});
+async function resetBookSequence() {
+  console.log('Resetting the book sequence...');
+  await execDelete(Counter.deleteOne({_id: 'bookId'}));
 }
 
-function addBook() {
+async function addBook() {
   console.log('Adding a new test book into the database...');
-  var data = getBookData();
-  var book = new Book(data);
-  book.save((err, b) => {
-    if (err) console.error(`Error occured while creating book: ${JSON.stringify(err)}`);
-  });
+  var book = await execCreate(new Book(getBookData()));
+  console.log('Added a test book.');
   return book;
 }
 
 module.exports = {
-  deleteAllBooks, addBook, deleteBookCounter, getBookData
+  deleteAllBooks, addBook, resetBookSequence, getBookData
 }

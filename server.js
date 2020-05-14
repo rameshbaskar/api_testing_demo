@@ -8,8 +8,7 @@ const book = require('./app/routes/book.routes');
 const app = express();
 
 const dbOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+  useMongoClient: true,
   server: {
     socketOptions: {
       keepAlive: 1,
@@ -20,6 +19,7 @@ const dbOptions = {
 
 // DB Connection
 mongoose.connect(config.DBHost, dbOptions);
+mongoose.Promise = require('bluebird');
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'DB connection error: '));
 
@@ -33,7 +33,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.text());
 app.use(bodyParser.json({type: 'application/json'}));
 
-app.get('/', (req, res) => {
+app.get('/', function(req, res) {
   res.status(200).json({ message: 'Welcome to our Bookstore !!' });
 });
 
@@ -52,7 +52,7 @@ app.route('/book/:bookId')
 
 function startServer() {
   console.log('Starting server...');
-  var server = app.listen(SERVER_PORT, () => {
+  var server = app.listen(SERVER_PORT, async () => {
     console.log(`API server now up and listening on port: ${SERVER_PORT}`);
   });
   return server;
