@@ -1,4 +1,4 @@
-async function execFind(query) {
+async function findDocument(query) {
   return await query.exec(async (err, res) => {
     if (err) {
       console.log(`Error while executing find query: ${JSON.stringify(err)}`);
@@ -9,7 +9,7 @@ async function execFind(query) {
   });
 }
 
-async function execCreate(query) {
+async function createDocument(query) {
   return await query.save(async (err, res) => {
     if (err) {
       console.log(`Error while executing create query: ${JSON.stringify(err)}`);
@@ -20,7 +20,7 @@ async function execCreate(query) {
   });
 }
 
-async function execDelete(query) {
+async function deleteDocument(query) {
   await query.exec(async (err) => {
     if (err) {
       console.log(`Error while executing delete query: ${JSON.stringify(err)}`);
@@ -31,7 +31,7 @@ async function execDelete(query) {
   });
 }
 
-async function execUpdate(query) {
+async function updateDocument(query) {
   return await query.exec(async (err, res) => {
     if (err) {
       console.log(`Error occured while executing update query: ${JSON.stringify(err)}`);
@@ -42,7 +42,7 @@ async function execUpdate(query) {
   });
 }
 
-async function execUpdateWithValidation(query) {
+async function updateDocumentWithValidation(query) {
   return await query.save(async (err, res) => {
     if (err) {
       console.log(`Error while executing updating query with validation: ${JSON.stringify(err)}`);
@@ -54,5 +54,5 @@ async function execUpdateWithValidation(query) {
 }
 
 module.exports = {
-  execFind, execCreate, execDelete, execUpdate, execUpdateWithValidation
+  findDocument, createDocument, deleteDocument, updateDocument, updateDocumentWithValidation
 }

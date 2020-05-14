@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const { Counter } = require('./counter');
-const { execFind, execCreate, execUpdate } = require('../utils/dbUtils');
+const { findDocument, createDocument, updateDocument } = require('../utils/dbUtils');
 
 const schema = new Schema(
   {
@@ -34,14 +34,14 @@ schema.pre('save', function(next) {
 
 async function getBookSequence() {
   console.log('Getting book sequence...');
-  var existingSeq = await execFind(Counter.findOne({_id: 'bookId'}));
+  var existingSeq = await findDocument(Counter.findOne({_id: 'bookId'}));
   if (existingSeq) {
     console.log('Sequence exists. So incrementing the sequence value.');
     existingSeq += 1;
-    return await execUpdate(Counter.findOneAndUpdate({_id: 'bookId'}, {$inc: {seqValue: 1}}, {upsert: true, new: true}));
+    return await updateDocument(Counter.findOneAndUpdate({_id: 'bookId'}, {$inc: {seqValue: 1}}, {upsert: true, new: true}));
   } else {
     console.log('Sequence does not exist. So creating a new sequence.');
-    return await execCreate(new Counter({_id: 'bookId', seqValue: 1}));
+    return await createDocument(new Counter({_id: 'bookId', seqValue: 1}));
   }
 }
 

@@ -4,7 +4,7 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const config = require('config');
 const SERVER_PORT = 8080;
-const book = require('./app/routes/book.routes');
+const book = require('./app/routes/bookRoutes');
 const app = express();
 
 const dbOptions = {

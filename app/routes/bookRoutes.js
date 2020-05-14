@@ -1,9 +1,9 @@
 const { Book } = require('../models/book');
-const { execFind, execCreate, execDelete, execUpdateWithValidation } = require('../utils/dbUtils');
+const { findDocument, createDocument, deleteDocument, updateDocumentWithValidation } = require('../utils/dbUtils');
 
 // GET /books
 async function getBooks(req, res) {
-  var books = await execFind(Book.find({}));
+  var books = await findDocument(Book.find({}));
   if (!books) {
     return res.status(500).json({ message: 'An error occured while fetching the books !!!' });
   } else {
@@ -15,7 +15,7 @@ async function getBooks(req, res) {
 // GET /books/:id
 async function getBook(req, res) {
   var id = parseInt(req.params.bookId);
-  var book = await execFind(Book.findOne({bookId: id}));
+  var book = await findDocument(Book.findOne({bookId: id}));
   if (!book) return res.status(404).json({ message: `Book with id: ${id} does not exist !!!` });
   return res.status(200).json({ message: 'Here is the book you are looking for.', book: book });
 }
@@ -23,7 +23,7 @@ async function getBook(req, res) {
 // POST /book
 async function addBook(req, res) {
   try {
-    var book = await execCreate(new Book(req.body));
+    var book = await createDocument(new Book(req.body));
     return res.status(200).json({ message: 'Book successfully added.', book: book });
   } catch(e) {
     return res.status(500).json({ message: 'An error occured while adding a new book !!!', error: e });
@@ -33,10 +33,10 @@ async function addBook(req, res) {
 // PUT /book/:id
 async function updateBook(req, res) {
   var id = parseInt(req.params.bookId);
-  var originalBook = await execFind(Book.findOne({bookId: id}));
+  var originalBook = await findDocument(Book.findOne({bookId: id}));
   if (!originalBook) return res.status(404).json({ message: `Book with id: ${id} does not exist !!!` });
   try {
-    var updatedBook = await execUpdateWithValidation(Object.assign(originalBook, req.body));
+    var updatedBook = await updateDocumentWithValidation(Object.assign(originalBook, req.body));
     return res.status(200).json({ message: 'Book successfully updated.', book: updatedBook });
   } catch(e) {
     return res.status(500).json({ message: 'An error occured while updating the book !!!', error: e });
@@ -46,9 +46,9 @@ async function updateBook(req, res) {
 // DELETE /book/:id
 async function deleteBook(req, res) {
   var id = parseInt(req.params.bookId);
-  var book = await execFind(Book.findOne({bookId: id}));
+  var book = await findDocument(Book.findOne({bookId: id}));
   if (!book) return res.status(404).json({ message: `Book with id: ${id} does not exist !!!` });
-  var isDeleted = await execDelete(Book.deleteOne({bookId: id}));
+  var isDeleted = await deleteDocument(Book.deleteOne({bookId: id}));
   if (!isDeleted) return res.status(500).json({ message: 'An error occured while deleting the book !!!' });
   return res.status(200).json({ message: 'Book successfully deleted.' });
 }
