@@ -7,7 +7,8 @@ const expect = chai.expect;
 chai.use(chaiHttp);
 
 describe('Bookstore', function() {
-  let server = undefined;
+  let server;
+  let request;
 
   before(function() {
     console.log('****PREPARING TEST SUITE');
@@ -18,10 +19,11 @@ describe('Bookstore', function() {
     console.log('************ PREPARING TEST');
     await deleteAllBooks();
     await resetBookSequence();
+    request = chai.request(server);
   });
 
   it('route "GET /" should return welcome message', function(done) {
-    chai.request(server)
+    request
       .get('/')
       .end(function(err, res) {
         expect(res).to.have.status(200);
@@ -32,7 +34,7 @@ describe('Bookstore', function() {
 
   describe('route "GET /books"', function() {
     it('should return empty when there are no books', function(done) {
-      chai.request(server)
+      request
         .get('/books')
         .end(function(err, res) {
           expect(res).to.have.status(404);
@@ -44,7 +46,7 @@ describe('Bookstore', function() {
   
     it('should return valid books when books are available', async function(done) {
       var book = await addBook();
-      chai.request(server)
+      request
         .get('/books')
         .end(function(err, res) {
           expect(res).to.have.status(200);
@@ -65,7 +67,7 @@ describe('Bookstore', function() {
     it('should return more than 1 book when available', async function(done) {
       var book1 = await addBook();
       await addBook();
-      chai.request(server)
+      request
         .get('/books')
         .end(function(err, res) {
           expect(res).to.have.status(200);
@@ -87,7 +89,7 @@ describe('Bookstore', function() {
 
   describe('route "GET /books/:bookId"', function() {
     it('should return empty when the book is not available', function(done) {
-      chai.request(server)
+      request
         .get('/books/1')
         .end(function(err, res) {
           expect(res).to.have.status(404);
@@ -99,7 +101,7 @@ describe('Bookstore', function() {
   
     it('should return valid book when book is available', async function(done) {
       var book = await addBook();
-      chai.request(server)
+      request
         .get(`/books/${book.bookId}`)
         .end(function(err, res) {
           expect(res).to.have.status(200);
@@ -119,7 +121,7 @@ describe('Bookstore', function() {
   describe('route "POST /book"', function() {
     it('should create a valid book', function(done) {
       var reqBody = getBookData();
-      chai.request(server)
+      request
         .post('/book')
         .set('content-type', 'application/json')
         .send(reqBody)
@@ -140,7 +142,7 @@ describe('Bookstore', function() {
     it('should throw an error when title is missing', function(done) {
       var reqBody = getBookData();
       reqBody.title = undefined;
-      chai.request(server)
+      request
         .post('/book')
         .set('content-type', 'application/json')
         .send(reqBody)
@@ -153,7 +155,7 @@ describe('Bookstore', function() {
     it('should throw an error when author is missing', function(done) {
       var reqBody = getBookData();
       reqBody.author = undefined;
-      chai.request(server)
+      request
         .post('/book')
         .set('content-type', 'application/json')
         .send(reqBody)
@@ -166,7 +168,7 @@ describe('Bookstore', function() {
     it('should throw an error when year is missing', function(done) {
       var reqBody = getBookData();
       reqBody.year = undefined;
-      chai.request(server)
+      request
         .post('/book')
         .set('content-type', 'application/json')
         .send(reqBody)
@@ -179,7 +181,7 @@ describe('Bookstore', function() {
     it('should throw an error when pages is missing', function(done) {
       var reqBody = getBookData();
       reqBody.pages = undefined;
-      chai.request(server)
+      request
         .post('/book')
         .set('content-type', 'application/json')
         .send(reqBody)
@@ -192,7 +194,7 @@ describe('Bookstore', function() {
     it('should throw an error when pages is 0', function(done) {
       var reqBody = getBookData();
       reqBody.pages = 0;
-      chai.request(server)
+      request
         .post('/book')
         .set('content-type', 'application/json')
         .send(reqBody)
@@ -206,7 +208,7 @@ describe('Bookstore', function() {
   describe('route "PUT /book/:bookId"', function() {
     it('should throw an error when updating a book that does not exist', function(done) {
       var reqBody = getBookData();
-      chai.request(server)
+      request
         .put(`/book/1`)
         .set('content-type', 'application/json')
         .send({title: 'New title'})
@@ -219,7 +221,7 @@ describe('Bookstore', function() {
 
     it('should update the title when valid', async function(done) {
       var originalBook = await addBook();
-      chai.request(server)
+      request
         .put(`/book/${originalBook.bookId}`)
         .set('content-type', 'application/json')
         .send({title: 'New title'})
@@ -239,7 +241,7 @@ describe('Bookstore', function() {
 
     it('should update the author when valid', async function(done) {
       var originalBook = await addBook();
-      chai.request(server)
+      request
         .put(`/book/${originalBook.bookId}`)
         .set('content-type', 'application/json')
         .send({author: 'New Author'})
@@ -259,7 +261,7 @@ describe('Bookstore', function() {
 
     it('should update the year when valid', async function(done) {
       var originalBook = await addBook();
-      chai.request(server)
+      request
         .put(`/book/${originalBook.bookId}`)
         .set('content-type', 'application/json')
         .send({year: 2020})
@@ -279,7 +281,7 @@ describe('Bookstore', function() {
 
     it('should update the pages when valid', async function(done) {
       var originalBook = await addBook();
-      chai.request(server)
+      request
         .put(`/book/${originalBook.bookId}`)
         .set('content-type', 'application/json')
         .send({pages: 100})
@@ -299,7 +301,7 @@ describe('Bookstore', function() {
 
     it('should throw an error when removing the title', async function(done) {
       var originalBook = await addBook();
-      chai.request(server)
+      request
         .put(`/book/${originalBook.bookId}`)
         .set('content-type', 'application/json')
         .send({title: null})
@@ -312,7 +314,7 @@ describe('Bookstore', function() {
 
     it('should throw an error when removing the author', async function(done) {
       var originalBook = await addBook();
-      chai.request(server)
+      request
         .put(`/book/${originalBook.bookId}`)
         .set('content-type', 'application/json')
         .send({author: null})
@@ -325,7 +327,7 @@ describe('Bookstore', function() {
 
     it('should throw an error when removing the year', async function(done) {
       var originalBook = await addBook();
-      chai.request(server)
+      request
         .put(`/book/${originalBook.bookId}`)
         .set('content-type', 'application/json')
         .send({year: null})
@@ -338,7 +340,7 @@ describe('Bookstore', function() {
 
     it('should throw an error when removing the pages', async function(done) {
       var originalBook = await addBook();
-      chai.request(server)
+      request
         .put(`/book/${originalBook.bookId}`)
         .set('content-type', 'application/json')
         .send({pages: null})
