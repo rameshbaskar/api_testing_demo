@@ -18,7 +18,7 @@ const dbOptions = {
 };
 
 // DB Connection
-mongoose.connect(config.DBHost, dbOptions);
+mongoose.connect(config.dbUrl, dbOptions);
 mongoose.Promise = require('bluebird');
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'DB connection error: '));
