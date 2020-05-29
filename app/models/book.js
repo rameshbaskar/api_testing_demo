@@ -33,14 +33,10 @@ schema.pre('save', function(next) {
 });
 
 async function getBookSequence() {
-  console.log('Getting book sequence...');
   var existingSeq = await findDocument(Counter.findOne({_id: 'bookId'}));
   if (existingSeq) {
-    console.log('Sequence exists. So incrementing the sequence value.');
-    existingSeq += 1;
     return await updateDocument(Counter.findOneAndUpdate({_id: 'bookId'}, {$inc: {seqValue: 1}}, {upsert: true, new: true}));
   } else {
-    console.log('Sequence does not exist. So creating a new sequence.');
     return await createDocument(new Counter({_id: 'bookId', seqValue: 1}));
   }
 }

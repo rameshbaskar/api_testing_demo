@@ -13,19 +13,15 @@ function getBookData() {
 }
 
 async function deleteAllBooks() {
-  console.log('Deleting all books...');
   await deleteDocument(Book.deleteMany({}));
 }
 
 async function resetBookSequence() {
-  console.log('Resetting the book sequence...');
   await deleteDocument(Counter.deleteOne({_id: 'bookId'}));
 }
 
 async function addBook() {
-  console.log('Adding a new test book into the database...');
   var book = await createDocument(new Book(getBookData()));
-  console.log('Added a test book.');
   return book;
 }
 
